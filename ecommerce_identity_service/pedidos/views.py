@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from identity_service.api_response import success_response
 
 from .models import Pedido
-from .serializers import PedidoSerializer, PedidoCreateSerializer
+from .serializers import PedidoSerializer, PedidoCreateSerializer, PedidoStatusUpdateSerializer
 
 _EJ_TIMESTAMP = '2026-04-11T20:15:30Z'
 
@@ -104,4 +104,51 @@ class PedidoDetailView(generics.RetrieveAPIView):
         return success_response(
             message='Pedido obtenido correctamente.',
             data=serializer.data,
+        )
+
+@extend_schema(
+    request=PedidoStatusUpdateSerializer,
+    responses={200: PedidoSerializer},
+    examples=[
+        OpenApiExample(
+            'Solicitud - actualizar estado',
+            summary='Actualizar solo el estado del pedido',
+            value={'estado': 'PAGADO'},
+            request_only=True,
+        ),
+        OpenApiExample(
+            'Respuesta - estado actualizado',
+            summary='Pedido actualizado correctamente',
+            value={
+                'success': True,
+                'message': 'Estado del pedido actualizado correctamente.',
+                'data': {
+                    'id': 101,
+                    'usuario': 42,
+                    'estado': 'PAGADO',
+                    'productos': [
+                        {'producto_id': 7, 'cantidad': 2, 'precio_unitario': '199.00'},
+                        {'producto_id': 15, 'cantidad': 1, 'precio_unitario': '799.00'},
+                    ],
+                },
+                'timestamp': _EJ_TIMESTAMP,
+            },
+            response_only=True,
+            status_codes=['200'],
+        ),
+    ],
+)
+class PedidoStatusUpdateView(generics.UpdateAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Pedido.objects.select_related('usuario').all()
+    serializer_class = PedidoStatusUpdateSerializer
+    lookup_url_kwarg = 'id'
+    http_method_names = ['patch']
+
+    def update(self, request, *args, **kwargs):
+        kwargs['partial'] = True
+        response = super().update(request, *args, **kwargs)
+        return success_response(
+            message='Estado del pedido actualizado correctamente.',
+            data=response.data,
         )

@@ -29,3 +29,10 @@ class PedidoCreateSerializer(serializers.ModelSerializer):
             if not isinstance(producto['cantidad'], int) or producto['cantidad'] <= 0:
                 raise serializers.ValidationError("La cantidad debe ser un entero positivo.")
         return value
+    
+class PedidoStatusUpdateSerializer(serializers.ModelSerializer):
+    estado = serializers.ChoiceField(choices=Pedido.Estado.choices)
+
+    class Meta:
+        model = Pedido
+        fields = ['estado']        
