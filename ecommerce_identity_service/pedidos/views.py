@@ -1,6 +1,9 @@
 from drf_spectacular.utils import OpenApiExample, extend_schema
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
+from rest_framework.response import Response
+import requests
 
 from identity_service.api_response import success_response
 
@@ -58,6 +61,38 @@ class PedidoCreateView(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
+        
+        # Hacer petición POST para reducir stock
+        productos = request.data.get('productos', [])
+        if productos:
+            try:
+                # Asumir URL del servicio de productos
+                product_service_url = 'http://localhost:8000/api/products/reduce-stock/'
+                #Data de la API para reducir stock
+                data_to_send = {
+                    'usuario_id': request.user.id,
+                    'productos': productos
+                }
+                resp = requests.post(product_service_url, json=data_to_send, timeout=10)
+                if resp.status_code != 200:
+                    # Si falla, eliminar el pedido creado
+                    pedido_id = response.data.get('id')
+                    if pedido_id:
+                        Pedido.objects.filter(id=pedido_id).delete()
+                    return Response(
+                        {'error': 'No se pudo reducir el stock de los productos.'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+            except requests.RequestException:
+                # Si hay error de conexión, eliminar pedido
+                pedido_id = response.data.get('id')
+                if pedido_id:
+                    Pedido.objects.filter(id=pedido_id).delete()
+                return Response(
+                    {'error': 'Error al conectar con el servicio de productos.'},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+        
         # Personalizar la respuesta usando success_response
         serializer = PedidoSerializer(response.data)
         return success_response(
