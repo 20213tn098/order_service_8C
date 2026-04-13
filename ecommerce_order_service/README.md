@@ -1,4 +1,4 @@
-# Identity Service
+# Order Service
 
 Microservicio de identidad para e-commerce construido con Django + Django REST Framework.  
 Gestiona registro, autenticación con JWT (access token) y consulta de perfil de usuario.
@@ -14,12 +14,13 @@ Gestiona registro, autenticación con JWT (access token) y consulta de perfil de
 
 ## Características principales
 
-- Modelo de usuario personalizado (`correo` como `USERNAME_FIELD`).
-- Endpoints para:
-  - Registro de usuario.
-  - Login con JWT (solo `access`).
-  - Consulta de perfil autenticado.
-  - Consulta de pedido por ID (estado y productos).
+- Módulo de pedidos (Order Service):
+  - Orquestador principal de compras: agrupa productos seleccionados por el cliente y genera órdenes de cobro.
+  - Modelo de pedido con ID, usuario, estado (Pendiente, Pagado, Enviado) y lista de productos (JSON con producto_id, cantidad, precio_unitario).
+  - Endpoints para crear pedido (con validación de usuario y productos), consultar estado y actualizar estado.
+  - Interacciones con servicios externos:
+    - Identity Service: Verifica que el usuario exista y sea válido.
+    - Product Service: Verifica stock y precios de productos, y solicita reducción de stock tras creación exitosa.
 - Documentación Swagger con ejemplos reales.
 - Contrato de respuesta estandarizado:
   - Éxito: `success`, `message`, `data`, `timestamp`
