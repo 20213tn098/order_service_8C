@@ -10,15 +10,19 @@ class PedidoSerializer(serializers.ModelSerializer):
 
 
 class PedidoCreateSerializer(serializers.ModelSerializer):
+    # usuario_id viene en el body porque no usamos JWT local
+    usuario_id = serializers.IntegerField(
+        help_text="ID del usuario registrado en Identity Service (Equipo 1)."
+    )
     productos = serializers.ListField(
         child=serializers.DictField(),
         min_length=1,
-        help_text="Lista de productos con 'producto_id', 'cantidad' y 'precio_unitario'."
+        help_text="Lista de productos con 'producto_id', 'cantidad' y 'precio_unitario'.",
     )
 
     class Meta:
         model = Pedido
-        fields = ['productos']
+        fields = ['usuario_id', 'productos']
 
     def validate_productos(self, value):
         for producto in value:

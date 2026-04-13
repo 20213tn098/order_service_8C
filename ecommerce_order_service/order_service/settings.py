@@ -151,3 +151,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# ── URLs de los microservicios externos ──────────────────────────────────────
+# Configura estas en tu archivo .env con la IP local del compañero de equipo.
+# Ejemplo: IDENTITY_SERVICE_URL=http://192.168.1.50:8001
+IDENTITY_SERVICE_URL = config('IDENTITY_SERVICE_URL', default='http://localhost:8001')
+PRODUCT_SERVICE_URL  = config('PRODUCT_SERVICE_URL',  default='http://localhost:8002')
